@@ -4,13 +4,22 @@ import random
 
 
 class Ball:
-    def __init__(self, canvas, color):
+    def __init__(self, canvas, paddle, color):
         self.canvas = canvas
+        self.paddle = paddle
         self.kolo = canvas.create_oval(10, 10, 25, 25, fill=color)
         self.canvas.move(self.kolo, 245, 100)
         numbers = [-3, -2, -1, 1, 2, 3]
         self.x = random.choice(numbers)
         self.y = random.choice(numbers)
+        self.collide_bottom = False
+
+    def collide(self, pos):
+        paddle_pos = self.canvas.coords(self.paddle.rect)
+        if pos[2] >= paddle_pos[0] and pos[0] <= paddle_pos[2]:
+            if pos[3] >= paddle_pos[1] and pos[3] <= paddle_pos[3]:
+                return True
+        return False
 
     def draw(self):
         self.canvas.move(self.kolo, self.x, self.y)
@@ -18,6 +27,10 @@ class Ball:
         if pos[1] <= 0:
             self.y *= -1
         if pos[3] >= 600:
+            self.y *= -1
+        if pos[3] >= 600:
+            self.collide_bottom = True
+        if self.collide(pos) == True:
             self.y *= -1
         if pos[0] <= 0:
             self.x *= -1
@@ -53,15 +66,17 @@ root = tk.Tk()
 root.title('Гра')
 root.geometry('500x600+700+50')
 root.resizable(False, False)
-canv = tk.Canvas(root, width=500, height=700, bg='white')
+canv = tk.Canvas(root, width=500, height=600, bg='white')
 canv.pack()
 
-ball = Ball(canv, 'red')
 paddle = Paddle(canv, 'blue')
+ball = Ball(canv, paddle, 'red')
+
 
 while True:
-    ball.draw()
-    paddle.draw()
+    if ball.collide_bottom == False:
+        ball.draw()
+        paddle.draw()
     root.update()
     time.sleep(0.01)
 
